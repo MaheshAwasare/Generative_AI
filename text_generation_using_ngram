@@ -1,0 +1,78 @@
+import random
+from collections import defaultdict
+
+# Example corpus
+corpus_data = [
+    "Natural language processing (NLP) is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human language.",
+    "Named entity recognition (NER) is a task in natural language processing that aims to identify named entities mentioned in unstructured text and classify them into predefined categories such as person names, organizations, locations, medical codes, time expressions, quantities, monetary values, percentages, etc.",
+    "Sentiment analysis, also known as opinion mining, is a subfield within natural language processing (NLP) that aims to identify and extract subjective information from textual data.",
+    "Word embeddings are a type of word representation that allows words to be represented as dense vectors in a continuous vector space, where the similarity between words in terms of meaning translates to closeness in the vector space.",
+    "Text summarization is the process of distilling the most important information from a source text to produce a concise and coherent summary while preserving the key ideas and concepts.",
+    "Part-of-speech tagging (POS tagging) is the process of assigning a grammatical category to words in a sentence, such as noun, verb, adjective, adverb, pronoun, preposition, conjunction, interjection, etc.",
+    "Machine translation is the task of automatically converting text or speech from one natural language into another, preserving the meaning and grammatical structure of the original text.",
+    "Language modeling is the task of predicting the next word in a sequence of words given the context of the preceding words, which is fundamental to various natural language processing applications such as speech recognition, machine translation, and text generation.",
+    "Named entity recognition (NER) systems are trained on large annotated datasets consisting of text documents labeled with named entities and their corresponding entity types to learn patterns and associations between words and entities.",
+    "Semantic analysis is the process of understanding the meaning of text at various levels, including word-level semantics, sentence-level semantics, and discourse-level semantics, which is essential for tasks such as question answering, information retrieval, and document classification."
+]
+
+
+# Preprocess the corpus
+def preprocess_corpus(corpus_data):
+    # Initialize an empty list to store preprocessed words
+    preprocessed_words = []
+    
+    # Loop through each sentence in the corpus data
+    for sentence in corpus_data:
+        # Convert the sentence to lowercase and split into words
+        words = sentence.lower().split()
+        # Add the preprocessed words to the list
+        preprocessed_words.extend(words)
+    
+    return preprocessed_words
+
+# Build an N-gram model
+def build_ngram_model(words, n):
+    ngram_model = defaultdict(lambda: defaultdict(int))
+
+    for i in range(len(words) - n + 1):  # Adjusted loop range
+        ngram = tuple(words[i:i + n])
+        next_word = words[i + n - 1]  # Adjusted index to get the next word
+        ngram_model[ngram][next_word] += 1
+
+    return ngram_model
+# Generate text using N-gram model
+def generate_text(ngram_model, n, seed=None, max_length=100):
+    if seed is None:
+        seed = random.choice(list(ngram_model.keys()))
+
+    current_ngram = seed
+    generated_text = list(seed)
+
+    while len(generated_text) < max_length:
+        next_word_candidates = list(ngram_model[current_ngram].keys())
+        
+        if not next_word_candidates:
+            break  # No candidates, stop generating
+
+        probabilities = [ngram_model[current_ngram][word] for word in next_word_candidates]
+
+        # Choose the next word based on probabilities
+        next_word = random.choices(next_word_candidates, weights=probabilities)[0]
+
+        generated_text.append(next_word)
+        current_ngram = tuple(generated_text[-n:])
+
+    return ' '.join(generated_text)
+
+# Let the user specify the value of N for the N-gram model
+#N = int(input("Enter the value of N for the N-gram model: "))
+N=40
+processed_corpus = preprocess_corpus(corpus_data)
+ngram_model = build_ngram_model(processed_corpus, N)
+
+# This is text generation logic
+seed_ngram = random.choice(list(ngram_model.keys()))
+generated_text_ngram = generate_text(ngram_model, N, seed=seed_ngram, max_length=50)
+
+print("\nGenerated Text using {}-gram model:".format(N))
+print(generated_text_ngram)
